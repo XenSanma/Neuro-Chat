@@ -3,6 +3,9 @@ A sleek, lightweight browser-based AI chat interface powered by the Gemini API. 
 
 ##  Features
 
+* **Live Chat:** Runs an one to one chat with the ai
+* **Custom token Limiter:** Limits token usage so you dont get out of free plan.
+* **Custom Prompting:** Give an prompt to ai in the settings, you can tell what type of behaviour you want from him.
 * **Zero Installation:** Runs entirely in your browser via a single HTML/JavaScript setup.
 * **Smart Memory:** Asks for your Gemini API key on the first launch and securely saves it locally in your browser's memory (`localStorage`). You never have to re-enter it unless you clear your cache.
 * **Claude-Like Logic:** Deeply prompted to provide rigorous, thoughtful, and fluff-free answers.
