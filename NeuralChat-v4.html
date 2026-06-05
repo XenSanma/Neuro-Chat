@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NeuralChat v4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- KaTeX for LaTeX math rendering -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<!-- Marked.js for proper markdown -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090f;--s1:#0e0f1a;--s2:#12131f;--s3:#16182a;--s4:#1c1f33;
+  --line:#1e2238;--line2:#252a45;
+  --text:#dde3ff;--text2:#7a85b0;--text3:#3d4468;
+  --a:#5b8fff;--a2:#2a5de0;
+  --g:#00d9a6;--g2:#00a87f;
+  --p:#b48eff;--p2:#7c3aed;
+  --r:#ff4f6d;--o:#ffb347;--y:#ffe066;
+  --grad:linear-gradient(135deg,#5b8fff,#b48eff);
+  --grad2:linear-gradient(135deg,#00d9a6,#5b8fff);
+  --glow:rgba(91,143,255,.14);--gglow:rgba(0,217,166,.12);
+  --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r8:8px;--r12:12px;--r16:16px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--font);color:var(--text);display:flex}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+::selection{background:rgba(91,143,255,.22)}
+
+/* SIDEBAR */
+#sb{width:232px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh;transition:width .25s cubic-bezier(.4,0,.2,1);overflow:hidden;position:relative;z-index:10}
+#sb.slim{width:52px}
+.sb-top{display:flex;align-items:center;gap:9px;padding:15px 11px 13px;border-bottom:1px solid var(--line);flex-shrink:0}
+.sb-logo{width:30px;height:30px;border-radius:9px;flex-shrink:0;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;box-shadow:0 0 16px var(--glow)}
+.sb-brand{font-size:14px;font-weight:800;white-space:nowrap;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.slim-toggle{margin-left:auto;flex-shrink:0;background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px;transition:color .18s,background .18s}
+.slim-toggle:hover{color:var(--a);background:var(--s3)}
+.new-btn{margin:10px 8px 7px;flex-shrink:0;display:flex;align-items:center;gap:7px;background:rgba(91,143,255,.08);border:1px solid rgba(91,143,255,.22);color:var(--a);border-radius:9px;padding:9px 11px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap;overflow:hidden}
+.new-btn:hover{background:rgba(91,143,255,.16);box-shadow:0 0 16px var(--glow)}
+.sb-label{padding:7px 11px 2px;font-size:9px;font-weight:700;letter-spacing:1.1px;color:var(--text3);text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+#chat-list{flex:1;overflow-y:auto;padding:2px 6px 6px}
+.ci{display:flex;align-items:center;gap:7px;padding:8px 7px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:all .14s;position:relative}
+.ci:hover{background:var(--s3)}
+.ci.on{background:var(--s4);border:1px solid var(--line2)}
+.ci-ico{font-size:12px;flex-shrink:0}
+.ci-txt{font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;color:var(--text2)}
+.ci.on .ci-txt{color:var(--text)}
+.ci-del{opacity:0;flex-shrink:0;background:none;border:none;color:var(--r);cursor:pointer;font-size:10px;padding:2px 4px;border-radius:4px;transition:opacity .14s}
+.ci:hover .ci-del{opacity:1}
+.sb-foot{padding:8px;border-top:1px solid var(--line);flex-shrink:0}
+.sb-btn{width:100%;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--text2);padding:8px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:11.5px;font-weight:500;transition:all .14s;white-space:nowrap;overflow:hidden}
+.sb-btn:hover{background:var(--s3);color:var(--text)}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;position:relative}
+#tbar{display:flex;align-items:center;gap:7px;padding:10px 16px;background:var(--s1);border-bottom:1px solid var(--line);flex-shrink:0}
+.tbar-title{font-size:12.5px;font-weight:600;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdl-chip{display:flex;align-items:center;gap:6px;background:var(--s3);border:1px solid var(--line2);border-radius:18px;padding:5px 11px 5px 8px;cursor:pointer;transition:all .18s;position:relative;flex-shrink:0}
+.mdl-chip:hover{border-color:var(--a);box-shadow:0 0 10px var(--glow)}
+.mdl-live{width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g)}
+.mdl-name{font-size:11px;font-weight:600;white-space:nowrap}
+#mdl-dd{position:absolute;top:calc(100% + 6px);right:0;z-index:200;background:var(--s2);border:1px solid var(--line2);border-radius:13px;padding:7px;width:260px;box-shadow:0 20px 50px rgba(0,0,0,.65);display:none}
+#mdl-dd.open{display:block;animation:drop .14s ease}
+@keyframes drop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.dd-grp{font-size:8.5px;font-weight:700;letter-spacing:1px;color:var(--text3);padding:5px 7px 2px;text-transform:uppercase}
+.dd-it{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:8px;cursor:pointer;transition:background .12s}
+.dd-it:hover{background:var(--s3)}
+.dd-it.sel{background:rgba(91,143,255,.08);border:1px solid rgba(91,143,255,.16)}
+.dd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dd-inf{flex:1}
+.dd-iname{font-size:12px;font-weight:600}
+.dd-idesc{font-size:10px;color:var(--text3);margin-top:1px}
+.dd-tag{font-size:8.5px;padding:2px 6px;border-radius:9px;font-weight:700;flex-shrink:0}
+.tag-free{background:rgba(0,217,166,.1);color:var(--g)}
+.tag-best{background:rgba(180,142,255,.1);color:var(--p)}
+.dd-sep{height:1px;background:var(--line);margin:4px 0}
+.tb-btn{background:none;border:1px solid transparent;color:var(--text3);border-radius:7px;padding:5px 9px;cursor:pointer;font-size:11px;font-family:var(--font);font-weight:500;display:flex;align-items:center;gap:4px;transition:all .16s;flex-shrink:0}
+.tb-btn:hover{background:var(--s3);border-color:var(--line);color:var(--text)}
+.tb-btn.on{background:rgba(91,143,255,.08);border-color:rgba(91,143,255,.2);color:var(--a)}
+.tb-btn.g-on{background:rgba(0,217,166,.08);border-color:rgba(0,217,166,.2);color:var(--g)}
+.tb-btn.r-on{background:rgba(255,79,109,.1);border-color:rgba(255,79,109,.28);color:var(--r);animation:pulse-r 1.2s ease infinite}
+@keyframes pulse-r{0%,100%{box-shadow:0 0 0 0 rgba(255,79,109,.35)}50%{box-shadow:0 0 0 4px rgba(255,79,109,0)}}
+
+/* LIVE VOICE CONVO BUTTON */
+.live-btn{display:flex;align-items:center;gap:6px;background:rgba(0,217,166,.08);border:1px solid rgba(0,217,166,.2);color:var(--g);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:var(--font);font-weight:600;transition:all .18s;flex-shrink:0}
+.live-btn:hover{background:rgba(0,217,166,.15);box-shadow:0 0 12px var(--gglow)}
+.live-btn.active{background:rgba(255,79,109,.1);border-color:rgba(255,79,109,.3);color:var(--r);animation:pulse-r 1.2s ease infinite}
+
+/* MESSAGES */
+#msgs{flex:1;overflow-y:auto;padding:18px 0;display:flex;flex-direction:column;scroll-behavior:smooth}
+#welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 22px;gap:16px;text-align:center;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wlc-orb{width:62px;height:62px;border-radius:18px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 36px var(--glow),0 0 70px rgba(180,142,255,.07);animation:orb 3s ease-in-out infinite}
+@keyframes orb{0%,100%{box-shadow:0 0 36px var(--glow),0 0 70px rgba(180,142,255,.07)}50%{box-shadow:0 0 54px rgba(91,143,255,.22),0 0 90px rgba(180,142,255,.1)}}
+.wlc-h{font-size:24px;font-weight:800;letter-spacing:-.3px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wlc-p{font-size:13px;color:var(--text2);max-width:340px;line-height:1.75}
+.wlc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:420px;width:100%;margin-top:4px}
+.wlc-card{background:var(--s2);border:1px solid var(--line);border-radius:11px;padding:12px;text-align:left;cursor:pointer;transition:all .16s}
+.wlc-card:hover{border-color:var(--a);background:var(--s3);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.wlc-card-ico{font-size:17px;margin-bottom:5px}
+.wlc-card-title{font-size:11.5px;font-weight:700;margin-bottom:3px}
+.wlc-card-desc{font-size:10.5px;color:var(--text3);line-height:1.45}
+.mwrap{padding:3px 0}
+.mwrap:hover .macts{opacity:1}
+.mrow{display:flex;align-items:flex-start;gap:12px;padding:0 20px;max-width:840px;margin:0 auto;width:100%}
+.mwrap.user .mrow{flex-direction:row-reverse}
+.ava{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:3px}
+.ava.ai{background:var(--grad);color:#fff;box-shadow:0 0 10px var(--glow)}
+.ava.usr{background:var(--grad2);color:#fff}
+.mcontent{flex:1;min-width:0}
+.mhead{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.mname{font-size:11.5px;font-weight:700}
+.mtime{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+.mtag{font-size:9px;padding:2px 6px;background:rgba(91,143,255,.09);color:var(--a);border-radius:9px;border:1px solid rgba(91,143,255,.16)}
+.mbubble{font-size:13.5px;line-height:1.8;color:var(--text);word-break:break-word}
+.mwrap.user .mbubble{display:inline-block;max-width:82%;background:var(--s3);border:1px solid var(--line2);border-radius:13px 13px 3px 13px;padding:10px 14px}
+.mbubble p{margin-bottom:8px}.mbubble p:last-child{margin-bottom:0}
+.mbubble strong{color:#fff;font-weight:700}
+.mbubble em{color:var(--p);font-style:italic}
+.mbubble del{color:var(--text3)}
+.mbubble a{color:var(--a);text-decoration:none;border-bottom:1px solid rgba(91,143,255,.28)}
+.mbubble a:hover{color:var(--g)}
+.mbubble ul,.mbubble ol{padding-left:20px;margin:6px 0}
+.mbubble li{margin-bottom:4px;line-height:1.7}
+.mbubble h1{font-size:19px;font-weight:800;color:#fff;margin:13px 0 6px;border-bottom:1px solid var(--line);padding-bottom:5px}
+.mbubble h2{font-size:16px;font-weight:700;color:#fff;margin:11px 0 5px}
+.mbubble h3{font-size:14px;font-weight:600;color:var(--text);margin:9px 0 4px}
+.mbubble h4{font-size:13px;font-weight:600;color:var(--text2);margin:7px 0 3px}
+.mbubble blockquote{border-left:3px solid var(--a);padding:7px 13px;margin:9px 0;background:var(--s3);border-radius:0 7px 7px 0;color:var(--text2)}
+.mbubble hr{border:none;border-top:1px solid var(--line);margin:11px 0}
+.mbubble table{border-collapse:collapse;width:100%;margin:9px 0;font-size:12.5px;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.mbubble th{background:var(--s4);color:#fff;font-weight:700;padding:8px 12px;text-align:left;border-bottom:2px solid var(--a)}
+.mbubble td{padding:7px 12px;border-bottom:1px solid var(--line)}
+.mbubble tr:last-child td{border-bottom:none}
+.mbubble tr:hover td{background:var(--s3)}
+.mbubble code:not(pre code){background:rgba(91,143,255,.07);border:1px solid rgba(91,143,255,.16);color:var(--a);padding:2px 5px;border-radius:4px;font-size:11.5px;font-family:var(--mono)}
+/* KaTeX */
+.mbubble .katex-display{overflow-x:auto;padding:8px 0;margin:8px 0}
+.mbubble .katex{font-size:1.1em}
+.cblock{position:relative;margin:9px 0;border-radius:9px;overflow:hidden;border:1px solid var(--line2)}
+.cblock-head{display:flex;align-items:center;justify-content:space-between;padding:6px 13px;background:#08091a;border-bottom:1px solid var(--line)}
+.cblock-lang{font-family:var(--mono);font-size:10.5px;color:var(--g);font-weight:500;display:flex;align-items:center;gap:5px}
+.cblock-lang::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g)}
+.cblock-acts{display:flex;gap:4px}
+.cblock-btn{background:none;border:1px solid var(--line2);color:var(--text3);border-radius:5px;padding:3px 8px;font-size:9.5px;font-family:var(--mono);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:3px}
+.cblock-btn:hover{border-color:var(--a);color:var(--a)}
+.cblock-btn.cp-ok{border-color:var(--g);color:var(--g)}
+.cblock pre{margin:0!important;border-radius:0!important;background:#05060f!important;padding:13px 15px!important;font-size:12px!important;line-height:1.7!important;font-family:var(--mono)!important;overflow-x:auto}
+.cout{display:none;border-top:1px solid var(--line);background:#030410;padding:9px 13px;font-family:var(--mono);font-size:11.5px;color:var(--g);line-height:1.6;max-height:180px;overflow-y:auto;white-space:pre-wrap}
+.cout.show{display:block}.cout.err{color:var(--r)}
+.cprev{display:none;height:260px;border-top:1px solid var(--line);background:#fff}
+.cprev.show{display:block}
+.msg-img{max-width:320px;border-radius:9px;margin:6px 0;border:1px solid var(--line);display:block}
+.typing{display:flex;gap:4px;padding:5px 0;align-items:center}
+.td{width:6px;height:6px;border-radius:50%;background:var(--a);animation:tdot 1.2s ease infinite;opacity:.3}
+.td:nth-child(2){animation-delay:.15s}.td:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{transform:none;opacity:.25}30%{transform:translateY(-4px);opacity:1}}
+.errmsg{display:flex;align-items:flex-start;gap:9px;background:rgba(255,79,109,.06);border:1px solid rgba(255,79,109,.2);border-radius:8px;padding:11px 13px;font-size:12.5px;color:var(--r);line-height:1.6}
+.macts{display:flex;gap:3px;padding:3px 20px;max-width:840px;margin:0 auto;width:100%;opacity:0;transition:opacity .16s}
+.mwrap.user .macts{justify-content:flex-end}
+.mact-btn{background:none;border:1px solid transparent;color:var(--text3);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:10px;font-family:var(--font);display:flex;align-items:center;gap:3px;transition:all .12s}
+.mact-btn:hover{border-color:var(--line);background:var(--s2);color:var(--text)}
+
+/* LIVE CONVERSATION OVERLAY */
+#live-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:1000;flex-direction:column;align-items:center;justify-content:center;gap:20px;animation:fadeIn .2s ease}
+#live-overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.live-orb-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.live-orb{width:120px;height:120px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:46px;box-shadow:0 0 60px var(--glow);transition:transform .1s ease}
+.live-orb.listening{animation:listenOrb 1.5s ease-in-out infinite}
+.live-orb.speaking{animation:speakOrb 0.6s ease-in-out infinite}
+@keyframes listenOrb{0%,100%{box-shadow:0 0 40px var(--glow),0 0 80px var(--gglow)}50%{box-shadow:0 0 80px rgba(91,143,255,.5),0 0 160px rgba(180,142,255,.25);transform:scale(1.04)}}
+@keyframes speakOrb{0%,100%{transform:scale(1)}50%{transform:scale(1.08);box-shadow:0 0 80px rgba(0,217,166,.5)}}
+.live-rings{position:absolute;inset:-20px;border-radius:50%;pointer-events:none}
+.live-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(91,143,255,.3);animation:ringPulse 2s ease-out infinite}
+.live-ring:nth-child(2){animation-delay:.5s;border-color:rgba(0,217,166,.2)}
+.live-ring:nth-child(3){animation-delay:1s;border-color:rgba(180,142,255,.15)}
+@keyframes ringPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.5);opacity:0}}
+.live-status{font-size:16px;font-weight:600;color:var(--text);letter-spacing:.5px}
+.live-caption{min-height:24px;font-size:13.5px;color:var(--text2);max-width:420px;text-align:center;line-height:1.6;font-style:italic;transition:opacity .2s}
+.live-controls{display:flex;gap:12px;margin-top:8px}
+.live-ctrl-btn{padding:10px 22px;border-radius:10px;border:1px solid var(--line2);background:var(--s2);color:var(--text);font-family:var(--font);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .18s}
+.live-ctrl-btn:hover{background:var(--s3);border-color:var(--a)}
+.live-ctrl-btn.end{background:rgba(255,79,109,.1);border-color:rgba(255,79,109,.3);color:var(--r)}
+.live-ctrl-btn.end:hover{background:rgba(255,79,109,.2)}
+.live-wave{display:flex;align-items:center;gap:3px;height:30px}
+.lw{width:3px;border-radius:2px;background:var(--a);animation:lwave 0.8s ease-in-out infinite;height:6px;transition:height .1s}
+.lw:nth-child(odd){animation-delay:.15s}
+@keyframes lwave{0%,100%{transform:scaleY(1);opacity:.5}50%{transform:scaleY(3);opacity:1}}
+.live-mode-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--g);background:rgba(0,217,166,.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(0,217,166,.2)}
+
+/* PANELS */
+.side-panel{position:absolute;top:0;right:0;bottom:0;width:300px;background:var(--s1);border-left:1px solid var(--line);display:none;flex-direction:column;z-index:50}
+.side-panel.open{display:flex;animation:sli .2s ease}
+@keyframes sli{from{transform:translateX(22px);opacity:0}to{transform:none;opacity:1}}
+.pan-head{display:flex;align-items:center;gap:9px;padding:14px 15px;border-bottom:1px solid var(--line);flex-shrink:0}
+.pan-title{font-size:13.5px;font-weight:700;flex:1}
+.pan-x{background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:3px 6px;border-radius:5px;transition:color .16s}
+.pan-x:hover{color:var(--r)}
+.pan-body{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:12px}
+.pan-lbl{font-size:10.5px;font-weight:700;color:var(--text2);margin-bottom:3px;display:block}
+.pan-ta,.pan-sel,.pan-inp{width:100%;background:var(--s3);border:1px solid var(--line);border-radius:8px;padding:8px 11px;color:var(--text);font-family:var(--font);font-size:12px;outline:none;transition:border-color .16s}
+.pan-ta{resize:vertical;min-height:75px;line-height:1.6}
+.pan-ta:focus,.pan-sel:focus,.pan-inp:focus{border-color:var(--a)}
+.pan-sel{cursor:pointer}
+.pan-btn{width:100%;background:var(--grad);border:none;border-radius:9px;padding:11px;color:#fff;font-family:var(--font);font-weight:700;font-size:12.5px;cursor:pointer;transition:opacity .16s,box-shadow .16s}
+.pan-btn:hover{opacity:.88;box-shadow:0 0 18px var(--glow)}
+.pan-btn:disabled{opacity:.3;cursor:not-allowed}
+.sec-title{font-size:11px;font-weight:700;color:var(--text);padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.tgl-row{display:flex;align-items:center;justify-content:space-between;padding:3px 0}
+.tgl-info .tgl-lbl{font-size:11.5px;font-weight:600;color:var(--text)}
+.tgl-info .tgl-desc{font-size:10px;color:var(--text3);margin-top:2px}
+.tgl{position:relative;width:34px;height:19px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-sl{position:absolute;inset:0;background:var(--line2);border-radius:19px;cursor:pointer;transition:background .18s}
+.tgl-sl::before{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;left:3px;top:3px;transition:transform .18s}
+.tgl input:checked+.tgl-sl{background:var(--a2)}
+.tgl input:checked+.tgl-sl::before{transform:translateX(15px)}
+.rng-row{display:flex;flex-direction:column;gap:5px}
+.rng-lbl{font-size:10.5px;font-weight:700;color:var(--text2);display:flex;justify-content:space-between}
+.rng-val{color:var(--a);font-family:var(--mono)}
+input[type=range]{width:100%;accent-color:var(--a)}
+
+/* STATUS */
+#sbar{display:flex;align-items:center;gap:6px;padding:5px 16px;background:var(--s1);border-top:1px solid var(--line);font-size:10.5px;color:var(--text3);flex-shrink:0;font-family:var(--mono)}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sdot.ok{background:var(--g);box-shadow:0 0 5px var(--g)}
+.sdot.loading{background:var(--o);animation:blink .8s ease infinite}
+.sdot.err{background:var(--r)}
+.sdot.live{background:var(--p);box-shadow:0 0 5px var(--p);animation:blink .6s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.ssp{flex:1}
+
+/* INPUT */
+#inp-area{padding:11px 16px 14px;flex-shrink:0;background:var(--s1);border-top:1px solid var(--line)}
+#img-prevs{display:flex;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.ip-wrap{position:relative;width:54px;height:54px}
+.ip-wrap img{width:100%;height:100%;object-fit:cover;border-radius:7px;border:1px solid var(--line2)}
+.ip-del{position:absolute;top:-4px;right:-4px;background:var(--r);border:none;border-radius:50%;width:15px;height:15px;color:#fff;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ibox{background:var(--s2);border:1px solid var(--line2);border-radius:13px;padding:11px 13px;transition:border-color .18s,box-shadow .18s}
+.ibox:focus-within{border-color:rgba(91,143,255,.38);box-shadow:0 0 0 3px rgba(91,143,255,.06)}
+#ui{width:100%;background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13.5px;line-height:1.6;resize:none;min-height:22px;max-height:140px;overflow-y:auto}
+#ui::placeholder{color:var(--text3)}
+.itoolbar{display:flex;align-items:center;gap:4px;margin-top:8px;padding-top:7px;border-top:1px solid var(--line)}
+.itool{background:none;border:1px solid transparent;color:var(--text3);border-radius:7px;padding:4px 8px;cursor:pointer;font-size:10.5px;font-family:var(--font);font-weight:500;display:flex;align-items:center;gap:4px;transition:all .16s}
+.itool:hover{background:var(--s3);border-color:var(--line);color:var(--text)}
+.itool.on{background:rgba(91,143,255,.07);border-color:rgba(91,143,255,.18);color:var(--a)}
+.itool.r-on{background:rgba(255,79,109,.09);border-color:rgba(255,79,109,.26);color:var(--r);animation:pulse-r 1.2s ease infinite}
+.isp{flex:1}
+.icc{font-size:9.5px;color:var(--text3);font-family:var(--mono)}
+.send-btn{width:36px;height:36px;flex-shrink:0;background:var(--grad);border:none;border-radius:9px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .16s,transform .08s,box-shadow .16s;box-shadow:0 2px 12px var(--glow)}
+.send-btn:hover{opacity:.88;box-shadow:0 0 20px var(--glow)}
+.send-btn:active{transform:scale(.9)}
+.send-btn:disabled{opacity:.25;cursor:not-allowed}
+#fi{display:none}
+
+/* VOICE BAR */
+#voice-bar{display:none;align-items:center;gap:9px;padding:7px 13px;background:rgba(255,79,109,.06);border:1px solid rgba(255,79,109,.2);border-radius:9px;margin-bottom:7px;animation:fi .18s ease}
+#voice-bar.show{display:flex}
+.voice-wave{display:flex;align-items:center;gap:2px;height:18px}
+.vw{width:3px;border-radius:2px;background:var(--r);animation:vwave 0.8s ease-in-out infinite}
+.vw:nth-child(1){animation-delay:0s;height:6px}
+.vw:nth-child(2){animation-delay:.1s;height:12px}
+.vw:nth-child(3){animation-delay:.2s;height:8px}
+.vw:nth-child(4){animation-delay:.05s;height:14px}
+.vw:nth-child(5){animation-delay:.15s;height:7px}
+@keyframes vwave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.8)}}
+#voice-txt{font-size:11.5px;color:var(--text2);flex:1;font-style:italic}
+#voice-stop{background:none;border:1px solid var(--r);color:var(--r);border-radius:5px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:var(--font)}
+
+/* API NOTICE */
+#api-notice{display:none;position:absolute;inset:0;z-index:500;background:rgba(9,9,15,.92);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+#api-notice.show{display:flex}
+.notice-card{background:var(--s2);border:1px solid var(--line2);border-radius:16px;padding:24px;max-width:380px;width:100%}
+.notice-title{font-size:17px;font-weight:800;margin-bottom:8px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.notice-desc{font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.notice-inp{width:100%;background:var(--s3);border:1px solid var(--line2);border-radius:9px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;margin-bottom:10px}
+.notice-inp:focus{border-color:var(--a)}
+.notice-btns{display:flex;gap:8px}
+.notice-btn{flex:1;padding:10px;border-radius:9px;border:none;font-family:var(--font);font-weight:700;font-size:12.5px;cursor:pointer}
+.notice-btn.primary{background:var(--grad);color:#fff}
+.notice-btn.secondary{background:var(--s3);border:1px solid var(--line);color:var(--text2)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--s3);border:1px solid var(--line2);border-radius:10px;padding:9px 16px;font-size:12px;pointer-events:none;opacity:0;transition:all .25s;z-index:2000;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sb">
+  <div class="sb-top">
+    <div class="sb-logo">N</div>
+    <span class="sb-brand">NeuralChat v4</span>
+    <button class="slim-toggle" onclick="toggleSB()" title="Collapse">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+  <button class="new-btn" onclick="newChat()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Chat
+  </button>
+  <div class="sb-label">Recent</div>
+  <div id="chat-list"></div>
+  <div class="sb-foot">
+    <button class="sb-btn" onclick="openPanel('settings')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      Settings
+    </button>
+    <button class="sb-btn" onclick="clearAll()" style="color:var(--r)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      Clear History
+    </button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main id="main">
+  <!-- TOPBAR -->
+  <div id="tbar">
+    <span class="tbar-title" id="chat-title">New Chat</span>
+
+    <!-- Model picker -->
+    <div class="mdl-chip" id="mdl-chip" onclick="toggleDD()">
+      <div class="mdl-live" id="mdl-live-dot"></div>
+      <span class="mdl-name" id="mdl-name">Gemini 2.5 Flash</span>
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div id="mdl-dd">
+      <div class="dd-grp">Free Models</div>
+      <div class="dd-it sel" data-m="gemini-2.5-flash" data-n="Gemini 2.5 Flash" data-p="gemini" onclick="pickModel(this)">
+        <div class="dd-dot" style="background:#00d9a6"></div>
+        <div class="dd-inf"><div class="dd-iname">Gemini 2.5 Flash</div><div class="dd-idesc">Fast, smart, free tier</div></div>
+        <span class="dd-tag tag-free">FREE</span>
+      </div>
+      <div class="dd-it" data-m="gemini-2.5-flash-lite" data-n="Gemini Flash Lite" data-p="gemini" onclick="pickModel(this)">
+        <div class="dd-dot" style="background:#5b8fff"></div>
+        <div class="dd-inf"><div class="dd-iname">Gemini Flash Lite</div><div class="dd-idesc">Fastest, most efficient</div></div>
+        <span class="dd-tag tag-free">FREE</span>
+      </div>
+      <div class="dd-sep"></div>
+      <div class="dd-grp">Paid Models</div>
+      <div class="dd-it" data-m="gemini-2.5-pro" data-n="Gemini 2.5 Pro" data-p="gemini" onclick="pickModel(this)">
+        <div class="dd-dot" style="background:#b48eff"></div>
+        <div class="dd-inf"><div class="dd-iname">Gemini 2.5 Pro</div><div class="dd-idesc">Most capable, reasoning</div></div>
+        <span class="dd-tag tag-best">PRO</span>
+      </div>
+    </div>
+
+    <button class="tb-btn on" id="stream-tb" onclick="toggleStream()">⚡ Stream</button>
+    <button class="tb-btn" id="web-tb" onclick="toggleWeb()">🌐 Web</button>
+    <button class="live-btn" id="live-conv-btn" onclick="startLiveConversation()" title="Real-time voice conversation — AI listens AND speaks back">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      Live Talk
+    </button>
+    <button class="tb-btn" id="voice-tb" onclick="openPanel('voice-panel')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+      Voice
+    </button>
+    <button class="tb-btn" onclick="openPanel('settings')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    </button>
+  </div>
+
+  <!-- MESSAGES -->
+  <div id="msgs">
+    <div id="welcome">
+      <div class="wlc-orb">✦</div>
+      <h1 class="wlc-h">NeuralChat v4</h1>
+      <p class="wlc-p">Claude-class AI powered by Gemini.<br>Math · Code · Voice · Real-time conversation.</p>
+      <div class="wlc-grid">
+        <div class="wlc-card" onclick="sp('Explain the Schrödinger equation and show the math: $i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\hat{H}\\Psi$')">
+          <div class="wlc-card-ico">🧮</div>
+          <div class="wlc-card-title">Math & Science</div>
+          <div class="wlc-card-desc">LaTeX equations rendered beautifully</div>
+        </div>
+        <div class="wlc-card" onclick="sp('Write a Python async web scraper that extracts product data and saves to JSON with error handling')">
+          <div class="wlc-card-ico">💻</div>
+          <div class="wlc-card-title">Code & Debug</div>
+          <div class="wlc-card-desc">Write, fix, explain code in any language</div>
+        </div>
+        <div class="wlc-card" onclick="startLiveConversation()">
+          <div class="wlc-card-ico">🎙️</div>
+          <div class="wlc-card-title">Live Voice Chat</div>
+          <div class="wlc-card-desc">Real-time: you speak, AI speaks back</div>
+        </div>
+        <div class="wlc-card" onclick="sp('Analyse the pros and cons of microservices vs monolithic architecture for a startup product')">
+          <div class="wlc-card-ico">🧠</div>
+          <div class="wlc-card-title">Deep Analysis</div>
+          <div class="wlc-card-desc">Nuanced thinking on complex topics</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div id="inp-area">
+    <div id="voice-bar">
+      <div class="voice-wave">
+        <div class="vw"></div><div class="vw"></div><div class="vw"></div><div class="vw"></div><div class="vw"></div>
+      </div>
+      <span id="voice-txt">Listening…</span>
+      <button id="voice-stop" onclick="stopVoiceInput()">■ Stop</button>
+    </div>
+    <div id="img-prevs"></div>
+    <div class="ibox">
+      <textarea id="ui" placeholder="Message NeuralChat… (Enter sends, Shift+Enter = new line)" rows="1"></textarea>
+      <div class="itoolbar">
+        <button class="itool" onclick="document.getElementById('fi').click()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Image
+        </button>
+        <button class="itool" onclick="addCodeFence()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Code
+        </button>
+        <button class="itool" id="mic-itool" onclick="toggleVoiceInput()">🎤 Mic</button>
+        <button class="itool on" id="stream-itool" onclick="toggleStream()">⚡ Stream</button>
+        <div class="isp"></div>
+        <span class="icc" id="cc">0</span>
+        <button class="send-btn" id="sbtn" onclick="send()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+    <input type="file" id="fi" accept="image/*" multiple onchange="handleImg(this)">
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="sbar">
+    <span class="sdot ok" id="sdot"></span>
+    <span id="sstat">Ready</span>
+    <span>•</span>
+    <span id="smdl">Gemini 2.5 Flash</span>
+    <span class="ssp"></span>
+    <span id="stok">0 tokens</span>
+    <span>•</span>
+    <span id="sbar-free" style="color:var(--g)">FREE TIER</span>
+  </div>
+
+  <!-- VOICE PANEL -->
+  <div class="side-panel" id="voice-panel-panel">
+    <div class="pan-head">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--g)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span class="pan-title">Voice Settings</span>
+      <button class="pan-x" onclick="closePanel('voice-panel')">✕</button>
+    </div>
+    <div class="pan-body">
+      <div class="sec-title">🎙️ Live Conversation Mode</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7">Press <strong style="color:var(--g)">Live Talk</strong> in the toolbar for a true back-and-forth voice conversation — you speak, AI automatically replies by voice, then listens again. No typing needed.</div>
+      <button class="pan-btn" onclick="startLiveConversation();closePanel('voice-panel')" style="background:linear-gradient(135deg,#00d9a6,#5b8fff)">🎙️ Start Live Conversation</button>
+
+      <div class="sec-title">Voice Output</div>
+      <div><label class="pan-lbl">Voice</label>
+        <select class="pan-sel" id="voice-sel"><option value="">Default voice</option></select>
+      </div>
+      <div class="rng-row">
+        <div class="rng-lbl">Speed <span class="rng-val" id="voice-rate-val">1.1</span></div>
+        <input type="range" min="0.5" max="2" step="0.05" value="1.1" id="voice-rate" oninput="document.getElementById('voice-rate-val').textContent=parseFloat(this.value).toFixed(2)">
+      </div>
+      <div class="rng-row">
+        <div class="rng-lbl">Pitch <span class="rng-val" id="voice-pitch-val">1.0</span></div>
+        <input type="range" min="0.5" max="2" step="0.1" value="1" id="voice-pitch" oninput="document.getElementById('voice-pitch-val').textContent=parseFloat(this.value).toFixed(1)">
+      </div>
+      <div class="tgl-row">
+        <div class="tgl-info"><div class="tgl-lbl">Auto-speak AI replies</div><div class="tgl-desc">Speak every text chat reply</div></div>
+        <label class="tgl"><input type="checkbox" id="autospeak"><span class="tgl-sl"></span></label>
+      </div>
+      <div><label class="pan-lbl">Language</label>
+        <select class="pan-sel" id="voice-lang">
+          <option value="en-US">English (US)</option>
+          <option value="en-IN">English (India)</option>
+          <option value="hi-IN">Hindi</option>
+          <option value="mr-IN">Marathi</option>
+          <option value="en-GB">English (UK)</option>
+          <option value="es-ES">Spanish</option>
+          <option value="fr-FR">French</option>
+          <option value="de-DE">German</option>
+          <option value="ja-JP">Japanese</option>
+          <option value="zh-CN">Chinese</option>
+        </select>
+      </div>
+      <button class="pan-btn" onclick="testSpeak()" style="background:linear-gradient(135deg,#b48eff,#5b8fff)">🔊 Test Voice</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="side-panel" id="settings-panel">
+    <div class="pan-head">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--a)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <span class="pan-title">Settings</span>
+      <button class="pan-x" onclick="closePanel('settings')">✕</button>
+    </div>
+    <div class="pan-body">
+      <div class="sec-title">AI Behaviour</div>
+      <div><label class="pan-lbl">System Prompt</label>
+        <textarea class="pan-ta" id="sys-prompt" rows="5" style="min-height:120px"></textarea>
+      </div>
+      <div><label class="pan-lbl">Persona Preset</label>
+        <select class="pan-sel" id="persona" onchange="applyPersona()">
+          <option value="claude">🤖 Claude-like (Default)</option>
+          <option value="coder">💻 Expert Programmer</option>
+          <option value="teacher">📚 Patient Teacher</option>
+          <option value="analyst">📊 Data Analyst</option>
+          <option value="writer">✍️ Creative Writer</option>
+          <option value="concise">⚡ Concise (saves tokens)</option>
+        </select>
+      </div>
+      <div class="rng-row">
+        <div class="rng-lbl">Temperature <span class="rng-val" id="tv">0.7</span></div>
+        <span style="font-size:10px;color:var(--text3)">Lower = precise · Higher = creative</span>
+        <input type="range" min="0" max="2" step="0.1" value="0.7" oninput="document.getElementById('tv').textContent=this.value" id="temp">
+      </div>
+      <div class="rng-row">
+        <div class="rng-lbl">Max Tokens <span class="rng-val" id="mtv">1500</span> <span style="font-size:9px;color:var(--g)">⚡token-saver</span></div>
+        <input type="range" min="256" max="8192" step="256" value="1500" oninput="document.getElementById('mtv').textContent=this.value" id="maxtok">
+      </div>
+      <div class="sec-title">Interface</div>
+      <div class="tgl-row">
+        <div class="tgl-info"><div class="tgl-lbl">Streaming</div><div class="tgl-desc">Show text as it generates</div></div>
+        <label class="tgl"><input type="checkbox" id="stream-set" checked onchange="syncStream()"><span class="tgl-sl"></span></label>
+      </div>
+      <div class="tgl-row">
+        <div class="tgl-info"><div class="tgl-lbl">Save Chat History</div><div class="tgl-desc">Remember conversations locally</div></div>
+        <label class="tgl"><input type="checkbox" id="save-set" checked><span class="tgl-sl"></span></label>
+      </div>
+      <div class="sec-title">API Key</div>
+      <div>
+        <label class="pan-lbl">Gemini API Key</label>
+        <input type="password" class="pan-inp" id="api-key-inp" placeholder="Paste your key (AIzaSy…)">
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">Free at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--a)">aistudio.google.com</a> — 15 req/min free</div>
+      </div>
+      <button class="pan-btn" onclick="saveKeys()">💾 Save Key</button>
+      <button class="pan-btn" onclick="exportChat()" style="background:var(--s3);border:1px solid var(--line);color:var(--text);margin-top:0">💾 Export Chat</button>
+    </div>
+  </div>
+
+  <!-- API NOTICE -->
+  <div id="api-notice">
+    <div class="notice-card">
+      <div class="notice-title">Add Your Gemini API Key</div>
+      <div class="notice-desc">NeuralChat uses the Google Gemini API. It's completely <strong style="color:var(--g)">free</strong> — get your key in 30 seconds at Google AI Studio.<br><br>15 requests/min free · No credit card needed · No usage limits on Flash model.</div>
+      <input class="notice-inp" type="password" id="notice-key" placeholder="Paste your API key here (AIzaSy…)">
+      <div class="notice-btns">
+        <button class="notice-btn primary" onclick="applyNoticeKey()">✅ Start Chatting</button>
+        <button class="notice-btn secondary" onclick="window.open('https://aistudio.google.com/apikey','_blank')">Get Free Key</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- LIVE CONVERSATION OVERLAY -->
+<div id="live-overlay">
+  <div class="live-mode-label">LIVE CONVERSATION</div>
+  <div class="live-orb-wrap">
+    <div class="live-rings">
+      <div class="live-ring"></div>
+      <div class="live-ring"></div>
+      <div class="live-ring"></div>
+    </div>
+    <div class="live-orb" id="live-orb">🎙️</div>
+  </div>
+  <div class="live-wave" id="live-wave-bars">
+    <div class="lw"></div><div class="lw"></div><div class="lw"></div><div class="lw"></div><div class="lw"></div><div class="lw"></div><div class="lw"></div>
+  </div>
+  <div class="live-status" id="live-status">Listening…</div>
+  <div class="live-caption" id="live-caption">Speak naturally. I'll reply when you pause.</div>
+  <div class="live-controls">
+    <button class="live-ctrl-btn" onclick="pauseLive()" id="live-pause-btn">⏸ Pause</button>
+    <button class="live-ctrl-btn end" onclick="endLiveConversation()">✕ End</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════════
+const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
+const CLAUDE_SYSTEM_PROMPT = `You are a brilliant, thoughtful AI assistant with the depth of Claude. Here is how you think and behave:
+
+**Core Identity**
+You are curious, warm, and intellectually engaged. You care deeply about being genuinely helpful — not just technically correct. You think carefully before answering and are honest when uncertain.
+
+**Communication Style**
+- Write in clear, natural prose. Avoid unnecessary jargon or padding.
+- Use markdown formatting to aid readability: headers, bullet lists, bold for key terms — but never over-format. Let prose flow when prose is best.
+- For math and equations: use LaTeX notation. Inline math goes in $...$ and block math in $$...$$ so it renders properly.
+- For code: always use fenced code blocks with the language name (e.g. \`\`\`python).
+- Match the user's tone: casual for casual, technical for technical, detailed when depth is needed.
+- Be concise when brevity serves better. Don't pad answers.
+
+**Thinking Quality**
+- Engage genuinely with the substance of questions, not just their surface.
+- Show your reasoning when it helps: "Let me think through this..." is better than a confident-sounding wrong answer.
+- If a question has multiple valid perspectives, present them fairly.
+- Point out important caveats, edge cases, or limitations of your answer.
+
+**Honesty**
+- Say "I don't know" or "I'm not certain" rather than confabulating.
+- Correct mistakes when you catch them.
+- Never pretend you can access the internet or run code unless explicitly given those tools.
+
+**Things you never do**
+- Never output raw LaTeX like \$6CO2 + \text{...}\$ as plain text — always render it properly.
+- Never use filler phrases like "Certainly!", "Of course!", "Great question!" at the start of replies.
+- Never be sycophantic or overly apologetic.
+- Never be preachy or lecture unnecessarily.
+
+You are here to genuinely help. Be the assistant someone would actually want to talk to.`;
+
+const PERSONAS = {
+  claude: CLAUDE_SYSTEM_PROMPT,
+  coder: `You are a world-class software engineer. Write clean, modern, well-commented code always in fenced code blocks with language specified. Explain design decisions. Point out potential bugs or improvements.`,
+  teacher: `You are a brilliant, patient teacher. Break complex topics into clear steps using analogies and simple language. Use LaTeX (in $...$ or $$...$$) for any math. Make learning genuinely enjoyable.`,
+  analyst: `You are a senior data analyst. Think in data, patterns, and evidence. Structure answers with: Problem → Analysis → Findings → Recommendations. Use tables for comparisons. Be evidence-based.`,
+  writer: `You are an expert creative writer and editor. Help craft compelling, vivid content. Adapt to any genre or style. Give honest, constructive feedback.`,
+  concise: `You are a concise assistant. Give short, direct answers. No preamble, no fluff. Use bullet points for lists. Use LaTeX for math ($...$). Only elaborate if explicitly asked.`,
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let MODEL = 'gemini-2.5-flash';
+let MODEL_NAME = 'Gemini 2.5 Flash';
+let API_KEY = localStorage.getItem('nc_key') || '';
+let STREAM = true;
+let WEB_SEARCH = false;
+let msgs = [];
+let sessions = {};
+let chatId = null;
+let loading = false;
+let totalTok = 0;
+let imgs = [];
+
+// Voice state
+let recognition = null;
+let isListening = false;
+let speechSynth = window.speechSynthesis;
+let currentUtterance = null;
+let voiceList = [];
+
+// Live conversation state
+let liveMode = false;
+let livePaused = false;
+let liveAutoSend = false;
+let liveSilenceTimer = null;
+let liveLastTranscript = '';
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  try { sessions = JSON.parse(localStorage.getItem('nc_sess') || '{}'); } catch {}
+  renderList();
+  document.getElementById('api-key-inp').value = API_KEY;
+  document.getElementById('sys-prompt').value = PERSONAS.claude;
+  updateProviderBadge();
+
+  const ta = document.getElementById('ui');
+  ta.addEventListener('input', () => { resize(ta); document.getElementById('cc').textContent = ta.value.length; });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#mdl-chip') && !e.target.closest('#mdl-dd'))
+      document.getElementById('mdl-dd').classList.remove('open');
+  });
+
+  document.getElementById('stream-set').checked = STREAM;
+  document.getElementById('stream-tb').classList.toggle('on', STREAM);
+  document.getElementById('stream-itool').classList.toggle('on', STREAM);
+
+  initSpeechRecognition();
+  loadVoices();
+  if (speechSynth.onvoiceschanged !== undefined) speechSynth.onvoiceschanged = loadVoices;
+
+  if (!API_KEY) document.getElementById('api-notice').classList.add('show');
+
+  chatId = 'c' + Date.now();
+
+  // Configure marked.js for clean rendering
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+    headerIds: false,
+    mangle: false,
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  API KEY
+// ═══════════════════════════════════════════════════════════════
+function applyNoticeKey() {
+  const k = document.getElementById('notice-key').value.trim();
+  if (!k) { toast('Please enter your API key', 'var(--o)'); return; }
+  API_KEY = k; localStorage.setItem('nc_key', k);
+  document.getElementById('api-key-inp').value = k;
+  document.getElementById('api-notice').classList.remove('show');
+  toast('🔑 Key saved! Start chatting.');
+}
+function saveKeys() {
+  const k = document.getElementById('api-key-inp').value.trim();
+  if (k) { API_KEY = k; localStorage.setItem('nc_key', k); }
+  updateProviderBadge();
+  toast('🔑 Key saved!');
+  closePanel('settings');
+}
+function updateProviderBadge() {
+  const ldot = document.getElementById('mdl-live-dot');
+  if (ldot) ldot.style.background = API_KEY ? 'var(--g)' : 'var(--r)';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SESSIONS
+// ═══════════════════════════════════════════════════════════════
+function saveSess() {
+  if (!document.getElementById('save-set').checked || !chatId || msgs.length === 0) return;
+  const title = msgs[0]?.text?.slice(0, 45) || msgs[0]?.content?.slice(0, 45) || 'Chat';
+  sessions[chatId] = { title, msgs: [...msgs], model: MODEL_NAME, ts: Date.now() };
+  try { localStorage.setItem('nc_sess', JSON.stringify(sessions)); } catch {}
+  renderList();
+}
+function loadSess(id) {
+  if (chatId && msgs.length > 0) saveSess();
+  const s = sessions[id];
+  if (!s) return;
+  chatId = id; msgs = [...s.msgs];
+  hideWelcome();
+  document.getElementById('msgs').innerHTML = '';
+  document.getElementById('chat-title').textContent = s.title;
+  msgs.forEach(m => {
+    if (m.role === 'user') renderUser(m.text || m.content || '', m.imgs || []);
+    else renderAI(m.content, s.model || MODEL_NAME);
+  });
+  renderList();
+}
+function delSess(id, e) {
+  e.stopPropagation();
+  delete sessions[id];
+  try { localStorage.setItem('nc_sess', JSON.stringify(sessions)); } catch {}
+  if (chatId === id) newChat(); else renderList();
+}
+function clearAll() {
+  if (!confirm('Delete all chat history?')) return;
+  sessions = {};
+  localStorage.removeItem('nc_sess');
+  newChat();
+}
+function newChat() {
+  if (chatId && msgs.length > 0) saveSess();
+  chatId = 'c' + Date.now(); msgs = []; imgs = [];
+  document.getElementById('img-prevs').innerHTML = '';
+  document.getElementById('msgs').innerHTML = '';
+  const w = document.createElement('div');
+  w.id = 'welcome';
+  w.innerHTML = `<div class="wlc-orb">✦</div>
+    <h1 class="wlc-h">NeuralChat v4</h1>
+    <p class="wlc-p">Claude-class AI powered by Gemini.<br>Math · Code · Voice · Real-time conversation.</p>
+    <div class="wlc-grid">
+      <div class="wlc-card" onclick="sp('Explain the Schrödinger equation and show the math')"><div class="wlc-card-ico">🧮</div><div class="wlc-card-title">Math & Science</div><div class="wlc-card-desc">LaTeX equations rendered beautifully</div></div>
+      <div class="wlc-card" onclick="sp('Write a Python async web scraper that saves to JSON')"><div class="wlc-card-ico">💻</div><div class="wlc-card-title">Code & Debug</div><div class="wlc-card-desc">Write, fix, explain code in any language</div></div>
+      <div class="wlc-card" onclick="startLiveConversation()"><div class="wlc-card-ico">🎙️</div><div class="wlc-card-title">Live Voice Chat</div><div class="wlc-card-desc">Real-time: you speak, AI speaks back</div></div>
+      <div class="wlc-card" onclick="sp('Analyse pros and cons of microservices vs monolithic')"><div class="wlc-card-ico">🧠</div><div class="wlc-card-title">Deep Analysis</div><div class="wlc-card-desc">Nuanced thinking on complex topics</div></div>
+    </div>`;
+  document.getElementById('msgs').appendChild(w);
+  document.getElementById('chat-title').textContent = 'New Chat';
+  totalTok = 0;
+  document.getElementById('stok').textContent = '0 tokens';
+  stopSpeaking();
+  renderList();
+}
+function renderList() {
+  const el = document.getElementById('chat-list');
+  const entries = Object.entries(sessions).sort((a, b) => b[1].ts - a[1].ts).slice(0, 40);
+  el.innerHTML = entries.map(([id, s]) =>
+    `<div class="ci ${id===chatId?'on':''}" onclick="loadSess('${id}')">
+      <span class="ci-ico">💬</span>
+      <span class="ci-txt" title="${esc(s.title)}">${esc(s.title)}</span>
+      <button class="ci-del" onclick="delSess('${id}',event)">✕</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+function resize(ta) { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 140) + 'px'; }
+function sp(text) {
+  const ta = document.getElementById('ui');
+  ta.value = text;
+  document.getElementById('cc').textContent = text.length;
+  resize(ta); ta.focus();
+}
+function addCodeFence() {
+  const ta = document.getElementById('ui');
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0, s) + '```\n\n```' + ta.value.slice(s);
+  ta.selectionStart = ta.selectionEnd = s + 4; ta.focus();
+}
+function toast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.color = color || 'var(--text)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+function setStatus(state, text) {
+  document.getElementById('sdot').className = 'sdot ' + state;
+  document.getElementById('sstat').textContent = text;
+}
+function toggleSB() { document.getElementById('sb').classList.toggle('slim'); }
+function toggleDD() { document.getElementById('mdl-dd').classList.toggle('open'); }
+function pickModel(el) {
+  document.querySelectorAll('.dd-it').forEach(i => i.classList.remove('sel'));
+  el.classList.add('sel');
+  MODEL = el.dataset.m; MODEL_NAME = el.dataset.n;
+  document.getElementById('mdl-name').textContent = MODEL_NAME;
+  document.getElementById('smdl').textContent = MODEL_NAME;
+  document.getElementById('mdl-dd').classList.remove('open');
+  const freeEl = document.getElementById('sbar-free');
+  if (freeEl) { freeEl.textContent = MODEL.includes('pro') ? 'PAID' : 'FREE TIER'; freeEl.style.color = MODEL.includes('pro') ? 'var(--a)' : 'var(--g)'; }
+}
+function toggleStream() {
+  STREAM = !STREAM;
+  ['stream-tb','stream-itool'].forEach(id => document.getElementById(id)?.classList.toggle('on', STREAM));
+  document.getElementById('stream-set').checked = STREAM;
+  toast(STREAM ? '⚡ Streaming ON' : '⚡ Streaming OFF');
+}
+function syncStream() {
+  STREAM = document.getElementById('stream-set').checked;
+  ['stream-tb','stream-itool'].forEach(id => document.getElementById(id)?.classList.toggle('on', STREAM));
+}
+function toggleWeb() {
+  WEB_SEARCH = !WEB_SEARCH;
+  document.getElementById('web-tb').classList.toggle('g-on', WEB_SEARCH);
+  toast(WEB_SEARCH ? '🌐 Web Search ON' : '🌐 Web Search OFF');
+}
+function openPanel(name) {
+  document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('open'));
+  document.getElementById(name + '-panel').classList.add('open');
+}
+function closePanel(name) { document.getElementById(name + '-panel').classList.remove('open'); }
+function applyPersona() {
+  const key = document.getElementById('persona').value;
+  document.getElementById('sys-prompt').value = PERSONAS[key] || PERSONAS.claude;
+}
+function hideWelcome() { document.getElementById('welcome')?.remove(); }
+function scrollBottom() { const el = document.getElementById('msgs'); el.scrollTop = el.scrollHeight; }
+function updateProviderBadge() { const ldot = document.getElementById('mdl-live-dot'); if (ldot) ldot.style.background = API_KEY ? 'var(--g)' : 'var(--r)'; }
+
+// ═══════════════════════════════════════════════════════════════
+//  IMAGE UPLOAD
+// ═══════════════════════════════════════════════════════════════
+function handleImg(input) {
+  Array.from(input.files).forEach(f => {
+    const r = new FileReader();
+    r.onload = e => { imgs.push(e.target.result); renderImgPrevs(); };
+    r.readAsDataURL(f);
+  });
+  input.value = '';
+}
+function renderImgPrevs() {
+  document.getElementById('img-prevs').innerHTML = imgs.map((s, i) =>
+    `<div class="ip-wrap"><img src="${s}"><button class="ip-del" onclick="imgs.splice(${i},1);renderImgPrevs()">✕</button></div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GEMINI API
+// ═══════════════════════════════════════════════════════════════
+function buildContents() {
+  return msgs.map(m => {
+    if (m.role === 'user') {
+      const parts = [];
+      (m.imgs || []).forEach(src => {
+        const b64 = src.split(',')[1];
+        const mime = src.match(/data:(.*?);/)?.[1] || 'image/jpeg';
+        parts.push({ inline_data: { mime_type: mime, data: b64 } });
+      });
+      parts.push({ text: m.text || m.content || '' });
+      return { role: 'user', parts };
+    } else {
+      return { role: 'model', parts: [{ text: m.content || '' }] };
+    }
+  });
+}
+
+async function callGemini(contents, stream) {
+  if (!API_KEY) throw new Error('No API key set. Click Settings to add your free Gemini key.');
+  const sysText = document.getElementById('sys-prompt').value.trim();
+  const temp = parseFloat(document.getElementById('temp').value);
+  const maxTok = parseInt(document.getElementById('maxtok').value);
+  const body = {
+    contents,
+    generationConfig: { temperature: temp, maxOutputTokens: maxTok },
+    ...(sysText ? { systemInstruction: { parts: [{ text: sysText }] } } : {}),
+    ...(WEB_SEARCH ? { tools: [{ google_search: {} }] } : {}),
+  };
+  const ep = stream
+    ? `${API_BASE}/models/${MODEL}:streamGenerateContent?alt=sse&key=${API_KEY}`
+    : `${API_BASE}/models/${MODEL}:generateContent?key=${API_KEY}`;
+  const resp = await fetch(ep, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${resp.status}`;
+    if (resp.status === 401 || resp.status === 403) throw new Error('API key invalid. Update it in Settings.');
+    if (resp.status === 429) throw new Error('Rate limit hit — free tier allows 15 req/min. Wait a moment.');
+    if (resp.status === 503) throw new Error('Gemini servers busy. Try again.');
+    throw new Error(msg);
+  }
+  return resp;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SEND
+// ═══════════════════════════════════════════════════════════════
+async function send() {
+  const ta = document.getElementById('ui');
+  const text = ta.value.trim();
+  if (!text || loading) return;
+
+  if (!chatId) chatId = 'c' + Date.now();
+  hideWelcome();
+  loading = true;
+  document.getElementById('sbtn').disabled = true;
+  setStatus('loading', 'Thinking…');
+  stopSpeaking();
+
+  const attachedImgs = [...imgs];
+  ta.value = ''; ta.style.height = 'auto';
+  document.getElementById('cc').textContent = '0';
+  imgs = []; document.getElementById('img-prevs').innerHTML = '';
+
+  msgs.push({ role: 'user', text, imgs: attachedImgs });
+  renderUser(text, attachedImgs);
+
+  // Keep history trimmed to save free tier quota
+  const MAX_HISTORY = 20;
+  if (msgs.length > MAX_HISTORY) msgs.splice(0, msgs.length - MAX_HISTORY);
+
+  const contents = buildContents();
+  let fullReply = '';
+
+  try {
+    if (STREAM) {
+      const bubble = createStreamBubble();
+      const resp = await callGemini(contents, true);
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') break;
+          try {
+            const json = JSON.parse(data);
+            const chunk = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (chunk) fullReply += chunk;
+            const ut = json?.usageMetadata?.totalTokenCount;
+            if (ut) { totalTok += ut; document.getElementById('stok').textContent = totalTok.toLocaleString() + ' tokens'; }
+          } catch {}
+        }
+        bubble.innerHTML = renderMarkdown(fullReply) + '<span style="opacity:.6">▌</span>';
+        renderKatex(bubble);
+        scrollBottom();
+      }
+      finalBubble(bubble, fullReply);
+    } else {
+      const typing = addTyping();
+      const resp = await callGemini(contents, false);
+      const data = await resp.json();
+      typing.remove();
+      fullReply = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+      const ut = data?.usageMetadata?.totalTokenCount;
+      if (ut) { totalTok += ut; document.getElementById('stok').textContent = totalTok.toLocaleString() + ' tokens'; }
+      renderAI(fullReply, MODEL_NAME);
+    }
+
+    msgs.push({ role: 'model', content: fullReply });
+    saveSess();
+    setStatus('ok', 'Ready');
+    document.getElementById('chat-title').textContent = (msgs[0]?.text || 'Chat').slice(0, 40);
+
+    if (document.getElementById('autospeak')?.checked && fullReply) speakText(fullReply);
+    if (liveMode && fullReply) liveSpeakAndListen(fullReply);
+
+  } catch (err) {
+    document.querySelectorAll('.stream-wrap').forEach(e => e.remove());
+    addErrMsg(err.message || 'Unknown error. Check your API key in Settings.');
+    setStatus('err', 'Error');
+    if (liveMode) { setLiveStatus('Error — tap Pause then continue', 'listening'); }
+  }
+
+  loading = false;
+  document.getElementById('sbtn').disabled = false;
+  if (!liveMode) document.getElementById('ui').focus();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MARKDOWN + LATEX RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderMarkdown(raw) {
+  if (!raw) return '';
+  // Parse with marked.js
+  let html = marked.parse(raw);
+  // Wrap code blocks with custom styling
+  html = html.replace(/<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g, (_, lang, code) => {
+    const isWeb = ['html','css','javascript','js','jsx','tsx'].includes(lang);
+    return `<div class="cblock">
+      <div class="cblock-head">
+        <span class="cblock-lang">${esc(lang)}</span>
+        <div class="cblock-acts">
+          <button class="cblock-btn cp-btn">📋 Copy</button>
+          ${isWeb ? `<button class="cblock-btn run-btn">▶ Run</button>` : ''}
+        </div>
+      </div>
+      <pre><code class="language-${esc(lang)}">${code}</code></pre>
+      <div class="cout"></div>
+      ${isWeb ? `<iframe class="cprev" sandbox="allow-scripts allow-same-origin"></iframe>` : ''}
+    </div>`;
+  });
+  // Plain code block fallback
+  html = html.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (_, code) => {
+    return `<div class="cblock">
+      <div class="cblock-head"><span class="cblock-lang">text</span><div class="cblock-acts"><button class="cblock-btn cp-btn">📋 Copy</button></div></div>
+      <pre><code>${code}</code></pre>
+      <div class="cout"></div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderKatex(el) {
+  if (typeof renderMathInElement === 'undefined') return;
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '$', right: '$', display: false },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '\\[', right: '\\]', display: true },
+      ],
+      throwOnError: false,
+      output: 'html',
+    });
+  } catch (e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER MESSAGES
+// ═══════════════════════════════════════════════════════════════
+function renderUser(text, imgList = []) {
+  const w = document.createElement('div');
+  w.className = 'mwrap user';
+  w.innerHTML = `
+    <div class="mrow">
+      <div class="ava usr">U</div>
+      <div class="mcontent">
+        <div class="mhead" style="justify-content:flex-end">
+          <span class="mtime">${now()}</span>
+          <span class="mname">You</span>
+        </div>
+        <div class="mbubble">
+          ${imgList.map(s => `<img class="msg-img" src="${s}">`).join('')}
+          ${esc(text).replace(/\n/g,'<br>')}
+        </div>
+      </div>
+    </div>
+    <div class="macts">
+      <button class="mact-btn cp-u-btn">📋 Copy</button>
+      <button class="mact-btn re-edit-btn">✏️ Edit</button>
+    </div>`;
+  w.querySelector('.cp-u-btn').addEventListener('click', () => navigator.clipboard.writeText(text).then(() => toast('📋 Copied!')));
+  w.querySelector('.re-edit-btn').addEventListener('click', () => { const ta = document.getElementById('ui'); ta.value = text; resize(ta); ta.focus(); });
+  document.getElementById('msgs').appendChild(w);
+  scrollBottom();
+}
+
+function renderAI(text, modelName) {
+  const w = document.createElement('div');
+  w.className = 'mwrap ai';
+  w.innerHTML = `
+    <div class="mrow">
+      <div class="ava ai">N</div>
+      <div class="mcontent">
+        <div class="mhead">
+          <span class="mname">NeuralChat</span>
+          <span class="mtag">${esc(modelName || MODEL_NAME)}</span>
+          <span class="mtime">${now()}</span>
+        </div>
+        <div class="mbubble">${renderMarkdown(text)}</div>
+      </div>
+    </div>
+    <div class="macts">
+      <button class="mact-btn copy-ai-btn">📋 Copy</button>
+      <button class="mact-btn speak-btn">🔊 Speak</button>
+      <button class="mact-btn regen-btn">🔄 Regen</button>
+    </div>`;
+  const bubble = w.querySelector('.mbubble');
+  renderKatex(bubble);
+  w.querySelector('.copy-ai-btn').addEventListener('click', () => navigator.clipboard.writeText(bubble.innerText || '').then(() => toast('📋 Copied!')));
+  w.querySelector('.speak-btn').addEventListener('click', function() {
+    if (this.classList.contains('speaking')) stopSpeaking();
+    else speakText(bubble.innerText || '', this);
+  });
+  w.querySelector('.regen-btn').addEventListener('click', regen);
+  wireCodeBlocks(w);
+  document.getElementById('msgs').appendChild(w);
+  scrollBottom();
+}
+
+function createStreamBubble() {
+  const w = document.createElement('div');
+  w.className = 'mwrap ai stream-wrap';
+  w.innerHTML = `
+    <div class="mrow">
+      <div class="ava ai">N</div>
+      <div class="mcontent">
+        <div class="mhead">
+          <span class="mname">NeuralChat</span>
+          <span class="mtag">${esc(MODEL_NAME)}</span>
+        </div>
+        <div class="mbubble sb"></div>
+      </div>
+    </div>`;
+  document.getElementById('msgs').appendChild(w);
+  scrollBottom();
+  return w.querySelector('.sb');
+}
+
+function finalBubble(bubble, text) {
+  bubble.innerHTML = renderMarkdown(text);
+  renderKatex(bubble);
+  const wrap = bubble.closest('.mwrap');
+  wrap.classList.remove('stream-wrap');
+  const acts = document.createElement('div');
+  acts.className = 'macts';
+  acts.innerHTML = `<button class="mact-btn copy-ai-btn">📋 Copy</button><button class="mact-btn speak-btn">🔊 Speak</button><button class="mact-btn regen-btn">🔄 Regen</button>`;
+  acts.querySelector('.copy-ai-btn').addEventListener('click', () => navigator.clipboard.writeText(bubble.innerText || '').then(() => toast('📋 Copied!')));
+  acts.querySelector('.speak-btn').addEventListener('click', function() {
+    if (this.classList.contains('speaking')) stopSpeaking();
+    else speakText(bubble.innerText || '', this);
+  });
+  acts.querySelector('.regen-btn').addEventListener('click', regen);
+  wrap.appendChild(acts);
+  wireCodeBlocks(wrap);
+  scrollBottom();
+}
+
+function addTyping() {
+  const w = document.createElement('div');
+  w.className = 'mwrap ai';
+  w.innerHTML = `<div class="mrow"><div class="ava ai">N</div><div class="mcontent"><div class="mbubble"><div class="typing"><span class="td"></span><span class="td"></span><span class="td"></span></div></div></div></div>`;
+  document.getElementById('msgs').appendChild(w);
+  scrollBottom();
+  return w;
+}
+
+function addErrMsg(msg) {
+  const w = document.createElement('div');
+  w.className = 'mwrap ai';
+  w.innerHTML = `<div class="mrow"><div class="ava ai">N</div><div class="mcontent"><div class="mbubble"><div class="errmsg">⚠️ ${esc(msg)}</div></div></div></div>`;
+  document.getElementById('msgs').appendChild(w);
+  scrollBottom();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CODE BLOCKS
+// ═══════════════════════════════════════════════════════════════
+function wireCodeBlocks(root) {
+  root.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch {} });
+  root.querySelectorAll('.cblock-btn.cp-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('.cblock').querySelector('code')?.innerText || '';
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = '✓ Copied!'; btn.classList.add('cp-ok');
+        setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('cp-ok'); }, 2000);
+      });
+    });
+  });
+  root.querySelectorAll('.run-btn').forEach(btn => btn.addEventListener('click', () => runCode(btn)));
+}
+
+function runCode(btn) {
+  const block = btn.closest('.cblock');
+  const lang = block.querySelector('.cblock-lang')?.textContent.trim().toLowerCase() || '';
+  const code = block.querySelector('code')?.innerText || '';
+  const prev = block.querySelector('.cprev');
+  if (['html','css','javascript','js'].includes(lang) && prev) {
+    prev.classList.add('show');
+    const doc = prev.contentDocument || prev.contentWindow.document;
+    doc.open();
+    if (lang === 'css') doc.write(`<style>${code}</style><div style="font-family:sans-serif;padding:10px;color:#333">CSS preview</div>`);
+    else if (lang === 'javascript' || lang === 'js') doc.write(`<!DOCTYPE html><html><body><script>${code}<\/script></body></html>`);
+    else doc.write(code);
+    doc.close();
+  }
+}
+
+function regen() {
+  if (msgs.length < 2 || loading) return;
+  msgs.pop();
+  const lastAI = document.querySelectorAll('.mwrap.ai');
+  lastAI[lastAI.length - 1]?.remove();
+  msgs.pop();
+  const lastUser = document.querySelectorAll('.mwrap.user');
+  const lastTxt = lastUser[lastUser.length - 1]?.querySelector('.mbubble')?.innerText || '';
+  lastUser[lastUser.length - 1]?.remove();
+  const ta = document.getElementById('ui');
+  ta.value = lastTxt; resize(ta);
+  send();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VOICE INPUT (Speech → Text)
+// ═══════════════════════════════════════════════════════════════
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('voice-bar').classList.add('show');
+    document.getElementById('voice-tb').classList.add('r-on');
+    document.getElementById('mic-itool').classList.add('r-on');
+    document.getElementById('mic-itool').textContent = '🔴 Mic';
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+
+    if (liveMode) {
+      // In live mode, accumulate and detect silence to auto-send
+      if (final) {
+        liveLastTranscript += (liveLastTranscript ? ' ' : '') + final;
+        document.getElementById('live-caption').textContent = liveLastTranscript + (interim ? ' ' + interim : '');
+        clearTimeout(liveSilenceTimer);
+        liveSilenceTimer = setTimeout(() => {
+          if (liveLastTranscript.trim() && !loading && liveMode && !livePaused) {
+            liveAutoSendMessage(liveLastTranscript.trim());
+          }
+        }, 1800); // 1.8s silence = send
+      } else if (interim) {
+        document.getElementById('live-caption').textContent = (liveLastTranscript ? liveLastTranscript + ' ' : '') + interim;
+      }
+      return;
+    }
+
+    // Normal mode
+    const ta = document.getElementById('ui');
+    const base = ta.dataset.voiceBase || '';
+    ta.value = base + final + interim;
+    if (final) ta.dataset.voiceBase = base + final;
+    document.getElementById('voice-txt').textContent = interim ? `"${interim}"` : 'Listening…';
+    resize(ta);
+    document.getElementById('cc').textContent = ta.value.length;
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed') toast('🎤 Microphone permission denied.', 'var(--r)');
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') toast('🎤 ' + e.error, 'var(--r)');
+    if (!liveMode) stopVoiceInput();
+  };
+
+  recognition.onend = () => {
+    if (isListening && !livePaused) {
+      try { recognition.start(); } catch {}
+    }
+  };
+}
+
+function startVoiceInput() {
+  if (!recognition) { toast('🎤 Use Chrome for speech recognition.', 'var(--o)'); return; }
+  const ta = document.getElementById('ui');
+  ta.dataset.voiceBase = ta.value;
+  recognition.lang = document.getElementById('voice-lang')?.value || 'en-US';
+  try { recognition.start(); } catch {}
+}
+
+function stopVoiceInput() {
+  isListening = false;
+  try { recognition?.stop(); } catch {}
+  document.getElementById('voice-bar').classList.remove('show');
+  document.getElementById('voice-tb').classList.remove('r-on');
+  document.getElementById('mic-itool').classList.remove('r-on');
+  document.getElementById('mic-itool').textContent = '🎤 Mic';
+  const ta = document.getElementById('ui');
+  delete ta.dataset.voiceBase;
+}
+
+function toggleVoiceInput() {
+  if (isListening) stopVoiceInput(); else startVoiceInput();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VOICE OUTPUT (Text → Speech)
+// ═══════════════════════════════════════════════════════════════
+function loadVoices() {
+  voiceList = speechSynth.getVoices();
+  const sel = document.getElementById('voice-sel');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Default voice</option>';
+  voiceList.forEach((v, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = `${v.name} (${v.lang})`;
+    sel.appendChild(opt);
+  });
+}
+
+function speakText(text, btnEl, onEnd) {
+  stopSpeaking();
+  const clean = text
+    .replace(/```[\s\S]*?```/g, 'code block')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\$\$[\s\S]*?\$\$/g, 'math expression')
+    .replace(/\$[^$\n]+\$/g, 'math')
+    .replace(/[#*_~\[\]\\]/g, '')
+    .replace(/\n+/g, ' ')
+    .trim();
+  if (!clean) { if (onEnd) onEnd(); return; }
+
+  currentUtterance = new SpeechSynthesisUtterance(clean);
+  const rateEl = document.getElementById('voice-rate');
+  const pitchEl = document.getElementById('voice-pitch');
+  const voiceSelEl = document.getElementById('voice-sel');
+  if (rateEl) currentUtterance.rate = parseFloat(rateEl.value);
+  if (pitchEl) currentUtterance.pitch = parseFloat(pitchEl.value);
+  const vIdx = voiceSelEl?.value;
+  if (vIdx !== '' && voiceList[vIdx]) currentUtterance.voice = voiceList[vIdx];
+  currentUtterance.lang = document.getElementById('voice-lang')?.value || 'en-US';
+
+  if (btnEl) { btnEl.classList.add('speaking'); btnEl.textContent = '⏹ Stop'; }
+
+  currentUtterance.onend = () => {
+    if (btnEl) { btnEl.classList.remove('speaking'); btnEl.textContent = '🔊 Speak'; }
+    document.querySelectorAll('.speak-btn.speaking').forEach(b => { b.classList.remove('speaking'); b.textContent = '🔊 Speak'; });
+    currentUtterance = null;
+    if (onEnd) onEnd();
+  };
+  currentUtterance.onerror = () => {
+    if (btnEl) { btnEl.classList.remove('speaking'); btnEl.textContent = '🔊 Speak'; }
+    if (onEnd) onEnd();
+  };
+
+  speechSynth.speak(currentUtterance);
+}
+
+function stopSpeaking() {
+  speechSynth.cancel();
+  currentUtterance = null;
+  document.querySelectorAll('.speak-btn.speaking').forEach(b => { b.classList.remove('speaking'); b.textContent = '🔊 Speak'; });
+}
+
+function testSpeak() {
+  speakText('Hello! I am NeuralChat — a Claude-class AI powered by Gemini. I can help you with math, code, analysis, and have real-time voice conversations. How can I help you today?');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LIVE CONVERSATION MODE
+// ═══════════════════════════════════════════════════════════════
+function startLiveConversation() {
+  if (!recognition) { toast('🎤 Live conversation requires Chrome/Edge.', 'var(--o)'); return; }
+  if (!API_KEY) { toast('⚠️ Add your API key in Settings first.', 'var(--o)'); openPanel('settings'); return; }
+
+  liveMode = true; livePaused = false; liveLastTranscript = '';
+  document.getElementById('live-overlay').classList.add('show');
+  document.getElementById('live-conv-btn').classList.add('active');
+  setStatus('live', 'Live Mode');
+
+  recognition.lang = document.getElementById('voice-lang')?.value || 'en-US';
+  isListening = true;
+  try { recognition.start(); } catch {}
+  setLiveStatus('Listening…', 'listening');
+}
+
+function endLiveConversation() {
+  liveMode = false; livePaused = false;
+  isListening = false;
+  clearTimeout(liveSilenceTimer);
+  try { recognition?.stop(); } catch {}
+  stopSpeaking();
+  document.getElementById('live-overlay').classList.remove('show');
+  document.getElementById('live-conv-btn').classList.remove('active');
+  setStatus('ok', 'Ready');
+  liveLastTranscript = '';
+  document.getElementById('live-caption').textContent = 'Speak naturally. I\'ll reply when you pause.';
+}
+
+function pauseLive() {
+  const btn = document.getElementById('live-pause-btn');
+  if (livePaused) {
+    livePaused = false; btn.textContent = '⏸ Pause';
+    isListening = true;
+    try { recognition.start(); } catch {}
+    setLiveStatus('Listening…', 'listening');
+  } else {
+    livePaused = true; btn.textContent = '▶ Resume';
+    isListening = false;
+    clearTimeout(liveSilenceTimer);
+    try { recognition?.stop(); } catch {}
+    stopSpeaking();
+    setLiveStatus('Paused', 'paused');
+  }
+}
+
+async function liveAutoSendMessage(text) {
+  if (loading) return;
+  liveLastTranscript = '';
+  document.getElementById('live-caption').textContent = text;
+  
+  // Stop recognition while AI thinks/speaks
+  isListening = false;
+  clearTimeout(liveSilenceTimer);
+  try { recognition?.stop(); } catch {}
+
+  setLiveStatus('Thinking…', 'thinking');
+  document.getElementById('live-orb').textContent = '🤔';
+
+  // Add to chat silently
+  hideWelcome();
+  msgs.push({ role: 'user', text, imgs: [] });
+  renderUser(text, []);
+
+  if (msgs.length > 20) msgs.splice(0, msgs.length - 20);
+  const contents = buildContents();
+  let fullReply = '';
+
+  loading = true;
+  document.getElementById('sbtn').disabled = true;
+
+  try {
+    const resp = await callGemini(contents, false);
+    const data = await resp.json();
+    fullReply = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+    const ut = data?.usageMetadata?.totalTokenCount;
+    if (ut) { totalTok += ut; document.getElementById('stok').textContent = totalTok.toLocaleString() + ' tokens'; }
+
+    msgs.push({ role: 'model', content: fullReply });
+    renderAI(fullReply, MODEL_NAME);
+    saveSess();
+    document.getElementById('chat-title').textContent = (msgs[0]?.text || 'Chat').slice(0, 40);
+
+    if (liveMode && fullReply) liveSpeakAndListen(fullReply);
+
+  } catch (err) {
+    addErrMsg(err.message);
+    // Resume listening after error
+    if (liveMode && !livePaused) {
+      setLiveStatus('Error — try again', 'listening');
+      document.getElementById('live-orb').textContent = '🎙️';
+      isListening = true;
+      try { recognition.start(); } catch {}
+    }
+  }
+
+  loading = false;
+  document.getElementById('sbtn').disabled = false;
+}
+
+function liveSpeakAndListen(text) {
+  setLiveStatus('Speaking…', 'speaking');
+  document.getElementById('live-orb').textContent = '🔊';
+  document.getElementById('live-orb').classList.remove('listening');
+  document.getElementById('live-orb').classList.add('speaking');
+  document.getElementById('live-caption').textContent = '(AI speaking…)';
+
+  speakText(text, null, () => {
+    // After speaking, resume listening
+    if (liveMode && !livePaused) {
+      liveLastTranscript = '';
+      document.getElementById('live-orb').textContent = '🎙️';
+      document.getElementById('live-orb').classList.remove('speaking');
+      document.getElementById('live-orb').classList.add('listening');
+      document.getElementById('live-caption').textContent = 'Your turn — speak now…';
+      setLiveStatus('Listening…', 'listening');
+      isListening = true;
+      try { recognition.start(); } catch {}
+    }
+  });
+}
+
+function setLiveStatus(text, mode) {
+  document.getElementById('live-status').textContent = text;
+  const orb = document.getElementById('live-orb');
+  orb.className = 'live-orb';
+  if (mode === 'listening') { orb.classList.add('listening'); setStatus('live', 'Live — Listening'); }
+  else if (mode === 'speaking') { orb.classList.add('speaking'); setStatus('live', 'Live — Speaking'); }
+  else { setStatus('loading', 'Live — ' + text); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════════════════
+function exportChat() {
+  if (msgs.length === 0) { toast('No messages to export'); return; }
+  const md = ['# NeuralChat Export\n', `**Model:** ${MODEL_NAME}  `, `**Date:** ${new Date().toLocaleString()}\n`, '---\n']
+    .concat(msgs.map(m => `**${m.role === 'user' ? 'You' : 'AI'}**\n\n${m.text || m.content || ''}`))
+    .join('\n\n---\n\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+  a.download = `neuralchat-${Date.now()}.md`;
+  a.click();
+  toast('💾 Exported!');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function copyTxt(t) { navigator.clipboard.writeText(t).then(() => toast('📋 Copied!')); }
+function now() { return new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }); }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
